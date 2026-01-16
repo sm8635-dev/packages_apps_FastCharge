@@ -26,14 +26,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.UserHandle;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
+import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import com.android.fastcharge.R;
 import com.android.fastcharge.utils.FileUtils;
 
-public class FastChargeFragment extends PreferenceFragmentCompat implements
+public class FastChargeFragment extends SettingsBasePreferenceFragment implements
         Preference.OnPreferenceChangeListener {
 
     private SwitchPreferenceCompat mFastChargePreference;
