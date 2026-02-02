@@ -23,40 +23,32 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.UserHandle;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreferenceCompat;
+import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import com.android.fastcharge.R;
 import com.android.fastcharge.utils.FileUtils;
 
-public class FastChargeFragment extends PreferenceFragmentCompat implements
+public class FastChargeFragment extends SettingsBasePreferenceFragment implements
         Preference.OnPreferenceChangeListener {
 
-    private SwitchPreferenceCompat mFastChargePreference;
+    private ListPreference mFastChargePreference;
     private FastChargeConfig mConfig;
-    private boolean mInternalFastChargeStart = false;
 
     private final BroadcastReceiver mServiceStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(mConfig.ACTION_FAST_CHARGE_SERVICE_CHANGED)) {
-                if (mInternalFastChargeStart) {
-                        mInternalFastChargeStart = false;
-                        return;
-                }
-
                 if (mFastChargePreference == null) return;
 
-                final boolean fastchargeStarted = intent.getBooleanExtra(
-                            mConfig.EXTRA_FAST_CHARGE_STATE, false);
-
-                mFastChargePreference.setChecked(fastchargeStarted);
-
+                final String mode = intent.getStringExtra(mConfig.EXTRA_FAST_CHARGE_STATE);
+                if (mode != null) {
+                    mFastChargePreference.setValue(mode);
+                }
             }
         }
     };
@@ -65,7 +57,8 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.fastcharge_settings, rootKey);
         mConfig = FastChargeConfig.getInstance(getContext());
-        mFastChargePreference = (SwitchPreferenceCompat) findPreference(mConfig.FASTCHARGE_KEY);
+        mFastChargePreference = (ListPreference) findPreference(mConfig.FASTCHARGE_KEY);
+
         if (FileUtils.fileExists(mConfig.getFastChargePath())) {
             mFastChargePreference.setEnabled(true);
             mFastChargePreference.setOnPreferenceChangeListener(this);
@@ -74,7 +67,7 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
             mFastChargePreference.setEnabled(false);
         }
 
-        mFastChargePreference.setChecked(mConfig.isCurrentlyEnabled(mConfig.getFastChargePath()));
+        updateUI();
 
         // Registering observers
         IntentFilter filter = new IntentFilter();
@@ -82,32 +75,35 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
         getContext().registerReceiver(mServiceStateReceiver, filter, Context.RECEIVER_EXPORTED);
     }
 
+    private void updateUI() {
+        if (mFastChargePreference != null) {
+            mFastChargePreference.setValue(mConfig.getCurrentValue(mConfig.getFastChargePath()));
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        mFastChargePreference.setChecked(mConfig.isCurrentlyEnabled(mConfig.getFastChargePath()));
+        updateUI();
     }
-
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (mConfig.FASTCHARGE_KEY.equals(preference.getKey())) {
-            mInternalFastChargeStart = true;
+            String mode = (String) newValue;
             Context mContext = getContext();
 
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
-            FileUtils.writeLine(mConfig.getFastChargePath(), (Boolean) newValue ? "1":"0");
+            // Write the selected mode (0, 1, or 2)
+            FileUtils.writeLine(mConfig.getFastChargePath(), mode);
 
-            boolean enabled = mConfig.isCurrentlyEnabled(mConfig.getFastChargePath());
-
-            sharedPrefs.edit().putBoolean(mConfig.FASTCHARGE_KEY, enabled).commit();
+            sharedPrefs.edit().putString(mConfig.FASTCHARGE_KEY, mode).commit();
 
             Intent intent = new Intent(mConfig.ACTION_FAST_CHARGE_SERVICE_CHANGED);
-
-            intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, enabled);
+            intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, mode);
             intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-            mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);;
+            mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
         }
         return true;
     }
@@ -117,5 +113,4 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
         super.onDestroy();
         getContext().unregisterReceiver(mServiceStateReceiver);
     }
-
 }

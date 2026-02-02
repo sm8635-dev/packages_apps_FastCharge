@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2023-2024 cyberknight777
+ * Copyright (C) 2015-2016 The CyanogenMod Project
+ *               2020 YAAP
+ *               2023-2024 cyberknight777
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,25 +36,26 @@ public class FastChargeConfig {
         return instance;
     }
 
-    public static final String FASTCHARGE_KEY = "fast_charging";
+    public static final String FASTCHARGE_KEY = "fast_charging_mode";
 
     private final String config_FastChargePath;
 
     public static final String ACTION_FAST_CHARGE_SERVICE_CHANGED = "com.android.fastcharge.battery.FAST_CHARGE_SERVICE_CHANGED";
-    public static final String EXTRA_FAST_CHARGE_STATE = "fastchargingenabled";
+    public static final String EXTRA_FAST_CHARGE_STATE = "fastcharge_mode";
 
     private FastChargeConfig(Context context) {
 
-	Resources res = context.getResources();
+        Resources res = context.getResources();
 
-	config_FastChargePath = res.getString(com.android.fastcharge.R.string.config_FastChargePath);
+        config_FastChargePath = res.getString(com.android.fastcharge.R.string.config_FastChargePath);
     }
 
     public String getFastChargePath() {
         return config_FastChargePath;
     }
 
-    public boolean isCurrentlyEnabled(String node) {
-        return FileUtils.getNodeValueAsBoolean(node, false);
+    public String getCurrentValue(String node) {
+        String value = FileUtils.readOneLine(node);
+        return value != null ? value.trim() : "1";
     }
- }
+}

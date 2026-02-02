@@ -21,8 +21,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Icon;
-import android.os.Handler;
 import android.os.UserHandle;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
@@ -36,28 +34,24 @@ public class FastChargeTileService extends TileService {
 
     private FastChargeConfig mConfig;
 
-    private Intent mFastChargeIntent;
-
-    private boolean mInternalStart;
-
     private final BroadcastReceiver mServiceStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (mInternalStart) {
-                mInternalStart = false;
-                return;
-            }
             updateUI();
         }
     };
 
     private void updateUI() {
         final Tile tile = getQsTile();
-        boolean enabled = mConfig.isCurrentlyEnabled(mConfig.getFastChargePath());
+        String mode = mConfig.getCurrentValue(mConfig.getFastChargePath());
 
-        if (!enabled) tryStopService();
+        // State logic: 0 = Slow (Inactive), 1 = Normal (Inactive), 2 = Fast (Active)
+        if (mode.equals("2")) {
+            tile.setState(Tile.STATE_ACTIVE);
+        } else {
+            tile.setState(Tile.STATE_INACTIVE);
+        }
 
-        tile.setState(enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
         tile.updateTile();
     }
 
@@ -81,27 +75,33 @@ public class FastChargeTileService extends TileService {
     @Override
     public void onClick() {
         super.onClick();
-        mInternalStart = true;
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String currentMode = mConfig.getCurrentValue(mConfig.getFastChargePath());
+        String nextMode;
 
-        boolean enabled = !mConfig.isCurrentlyEnabled(mConfig.getFastChargePath());
-        FileUtils.writeLine(mConfig.getFastChargePath(), enabled ? "1" : "0");
+        // Cycle through 0 -> 1 -> 2 -> 0
+        switch (currentMode) {
+            case "0":
+                nextMode = "1";
+                break;
+            case "1":
+                nextMode = "2";
+                break;
+            case "2":
+            default:
+                nextMode = "0";
+                break;
+        }
 
-        sharedPrefs.edit().putBoolean(mConfig.FASTCHARGE_KEY, enabled).commit();
+        FileUtils.writeLine(mConfig.getFastChargePath(), nextMode);
+        sharedPrefs.edit().putString(mConfig.FASTCHARGE_KEY, nextMode).commit();
 
         Intent intent = new Intent(mConfig.ACTION_FAST_CHARGE_SERVICE_CHANGED);
-
-        intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, enabled);
+        intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, nextMode);
         intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-        this.sendBroadcastAsUser(intent, UserHandle.CURRENT);;
+        this.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 
         updateUI();
-    }
-
-    private void tryStopService() {
-        if (mFastChargeIntent == null) return;
-        this.stopService(mFastChargeIntent);
-        mFastChargeIntent = null;
     }
 }

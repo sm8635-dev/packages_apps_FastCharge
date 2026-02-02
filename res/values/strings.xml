@@ -16,8 +16,21 @@
 
     <!-- Fast Charge -->
     <string name="fast_charge_title">FastCharge</string>
-    <string name="fast_charge_summary">Contains a toggle to enable fast charging on this device</string>
-    <string name="fast_charging_title">Fast Charging</string>
-    <string name="fast_charging_summary">Disable to reduce the heat produced by the device while charging or to extend the lifespan of the battery</string>
+    <string name="fast_charge_summary">Select a profile to control charging speed and heat</string>
+    <string name="fast_charging_title">Charging Mode</string>
     <string name="fast_charging_summary_not_supported">Fast Charging is currently not supported by the kernel</string>
+
+    <!-- Pick values from 0, 1, 2 -->
+    <string-array name="fast_charge_entries">
+        <item>Slow</item>
+        <item>Normal</item>
+        <item>Fast</item>
+    </string-array>
+
+    <string-array name="fast_charge_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
