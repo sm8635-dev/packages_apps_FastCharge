@@ -97,7 +97,8 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
 
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
-            FileUtils.writeLine(mConfig.getFastChargePath(), (Boolean) newValue ? "1":"0");
+            // Write "2" for ON and "1" for OFF
+            FileUtils.writeLine(mConfig.getFastChargePath(), (Boolean) newValue ? "2" : "1");
 
             boolean enabled = mConfig.isCurrentlyEnabled(mConfig.getFastChargePath());
 
@@ -107,7 +108,7 @@ public class FastChargeFragment extends PreferenceFragmentCompat implements
 
             intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, enabled);
             intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-            mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);;
+            mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
         }
         return true;
     }

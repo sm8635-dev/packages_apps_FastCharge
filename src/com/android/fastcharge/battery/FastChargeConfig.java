@@ -43,9 +43,9 @@ public class FastChargeConfig {
 
     private FastChargeConfig(Context context) {
 
-	Resources res = context.getResources();
+        Resources res = context.getResources();
 
-	config_FastChargePath = res.getString(com.android.fastcharge.R.string.config_FastChargePath);
+        config_FastChargePath = res.getString(com.android.fastcharge.R.string.config_FastChargePath);
     }
 
     public String getFastChargePath() {
@@ -53,6 +53,7 @@ public class FastChargeConfig {
     }
 
     public boolean isCurrentlyEnabled(String node) {
-        return FileUtils.getNodeValueAsBoolean(node, false);
+        String value = FileUtils.readOneLine(node);
+        return value != null && value.trim().equals("2");
     }
- }
+}

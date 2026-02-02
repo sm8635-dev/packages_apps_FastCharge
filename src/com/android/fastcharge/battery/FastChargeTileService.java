@@ -86,7 +86,9 @@ public class FastChargeTileService extends TileService {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean enabled = !mConfig.isCurrentlyEnabled(mConfig.getFastChargePath());
-        FileUtils.writeLine(mConfig.getFastChargePath(), enabled ? "1" : "0");
+        
+        // Write "2" for ON and "1" for OFF
+        FileUtils.writeLine(mConfig.getFastChargePath(), enabled ? "2" : "1");
 
         sharedPrefs.edit().putBoolean(mConfig.FASTCHARGE_KEY, enabled).commit();
 
@@ -94,7 +96,7 @@ public class FastChargeTileService extends TileService {
 
         intent.putExtra(mConfig.EXTRA_FAST_CHARGE_STATE, enabled);
         intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-        this.sendBroadcastAsUser(intent, UserHandle.CURRENT);;
+        this.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 
         updateUI();
     }
