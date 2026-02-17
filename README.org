@@ -20,12 +20,12 @@ ROM Frontend for fast charging toggle.
 ** 1) Clone this repository to the specified directory
 
 #+BEGIN_SRC shell
-git clone https://github.com/cyberknight777/android_packages_apps_FastCharge packages/apps/FastCharge
+git clone https://github.com/sm8635-dev/packages_apps_FastCharge.git packages/apps/FastCharge
 #+END_SRC
 
 ** 2) Adapt the following commit for your device and build it as it is :)
 
-https://github.com/YAAP/device_xiaomi_sunny/commit/55862f9647af5485c20e00021fde61e3f08a1f79
+https://github.com/sm8635-dev/device_xiaomi_peridot/commit/c651bd06b461fc706dee0c31f8622cf384ca2b94
 
 * Purpose
 
