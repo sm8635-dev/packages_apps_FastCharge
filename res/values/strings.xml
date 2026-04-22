@@ -22,10 +22,10 @@
     <string name="fast_charging_summary_not_supported">Fast Charging is currently not supported by the kernel</string>
 
     <!-- Pick values from 0, 1, 2 -->
-    <string-array name="fast_charge_entries">
-        <item>Slow</item>
-        <item>Normal</item>
-        <item>Fast</item>
+    <string-array name="fast_charging_entries">
+        <item>Disabled</item>
+        <item>Standard</item>
+        <item>Turbo</item>
     </string-array>
 
     <string-array name="fast_charge_values">

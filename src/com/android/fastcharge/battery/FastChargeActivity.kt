@@ -20,20 +20,34 @@
 package com.android.fastcharge.battery
 
 import android.os.Bundle
-import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.Modifier
 
-class FastChargeActivity : CollapsingToolbarBaseActivity() {
+class FastChargeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportFragmentManager.beginTransaction().replace(
-            com.android.settingslib.collapsingtoolbar.R.id.content_frame,
-            FastChargeFragment(),
-            TAG_FAST_CHARGE
-        ).commit()
-    }
+        enableEdgeToEdge()
+        setContent {
+            val darkTheme = isSystemInDarkTheme()
+            val colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
 
-    companion object {
-        private const val TAG_FAST_CHARGE = "FastCharge"
+            MaterialTheme(colorScheme = colorScheme) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    FastChargeScreen()
+                }
+            }
+        }
     }
 }

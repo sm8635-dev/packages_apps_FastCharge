@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2022 CannedShroud
 // Copyright (C) 2023-2024 cyberknight777
+// Copyright (C) 2026 zenin1504
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -23,7 +24,19 @@ android_app {
 
     static_libs: [
         "androidx.core_core",
+        "androidx.activity_activity-compose",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-extended",
         "androidx.preference_preference",
         "SettingsLib",
+    ],
+
+    kotlincflags: [
+        "-Xjvm-default=all",
+        "-opt-in=kotlin.RequiresOptIn",
+        "-P plugin:androidx.compose.compiler.plugins.kotlin:sourceInformation=true",
     ],
 }
