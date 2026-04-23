@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2015-2016 The CyanogenMod Project
- *               Copyright (C) 2020 YAAP
- *               Copyright (C) 2023-2026 cyberknight777
- *               Copyright (C) 2026 zenin1504
+ *               2020 YAAP
+ *               2023-2026 cyberknight777
+ *               2026 zenin1504
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.UserHandle
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.OfflineBolt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import com.android.fastcharge.R
@@ -78,62 +85,121 @@ fun FastChargeScreen() {
             )
         }
     ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
+        LazyColumn(
+            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = isSupported) { showDialog = true }
-                        .padding(16.dp)
+                StatusHeroCard(currentMode, isSupported)
+            }
+
+            item {
+                Text(
+                    text = "Configuration",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                )
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.fast_charging_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (isSupported) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    ListItem(
+                        modifier = Modifier.clickable(enabled = isSupported) { showDialog = true },
+                        headlineContent = { Text(stringResource(R.string.fast_charging_title)) },
+                        supportingContent = { 
+                            Text(if (isSupported) getSummary(currentMode) 
+                                 else stringResource(R.string.fast_charging_summary_not_supported)) 
+                        },
+                        leadingContent = { 
+                            Icon(Icons.Default.OfflineBolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary) 
+                        }
                     )
-                    Text(
-                        text = if (isSupported) getSummary(currentMode) else stringResource(R.string.fast_charging_summary_not_supported),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isSupported) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                    )
+                }
+            }
+
+            item {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = "Turbo mode allows the device to pull more current from the charger. High speeds may increase device temperature.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
     }
 
     if (showDialog) {
-        val modes = arrayOf("0", "1", "2")
-        val labels = stringArrayResource(R.array.fast_charging_entries)
-        
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text(stringResource(R.string.fast_charging_title)) },
             text = {
+                val modes = arrayOf("0", "1", "2")
+                val labels = stringArrayResource(R.array.fast_charging_entries)
                 Column {
                     modes.forEachIndexed { index, mode ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    updateMode(context, config, mode)
-                                    currentMode = mode
-                                    showDialog = false
-                                }
-                                .padding(16.dp)
-                        ) {
-                            RadioButton(selected = (currentMode == mode), onClick = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(labels[index])
-                        }
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                updateMode(context, config, mode)
+                                currentMode = mode
+                                showDialog = false
+                            },
+                            headlineContent = { Text(labels[index]) },
+                            leadingContent = { RadioButton(selected = (currentMode == mode), onClick = null) }
+                        )
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            }
+            confirmButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } }
         )
+    }
+}
+
+@Composable
+fun StatusHeroCard(mode: String, isSupported: Boolean) {
+    val containerColor by animateColorAsState(
+        targetValue = when {
+            !isSupported -> MaterialTheme.colorScheme.surfaceVariant
+            mode == "2" -> MaterialTheme.colorScheme.primaryContainer
+            mode == "1" -> MaterialTheme.colorScheme.secondaryContainer
+            else -> MaterialTheme.colorScheme.tertiaryContainer
+        }, label = "color"
+    )
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(28.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Current Status", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    text = if (isSupported) getSummary(mode) else "Unsupported",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.BatteryChargingFull,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        }
     }
 }
 
